@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feliz Cumpleaños Especial</title>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    background-color: #000;
+    font-family: 'Arial', sans-serif;
+  }
+  canvas {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+  }
+  #main-content {
+    position: absolute;
+    top: 5%; /* Ajusta la posición vertical para el encabezado */
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    z-index: 10;
+    width: 90%; /* Ancho para centrar mejor el texto */
+  }
+  #happy-birthday {
+    color: gold;
+    font-size: 60px; /* Tamaño de letra más grande */
+    font-weight: bold;
+    text-transform: uppercase; /* Mayúsculas */
+    text-shadow: 0 0 15px rgba(255, 215, 0, 0.8); /* Sombra para el dorado */
+    margin-bottom: 20px; /* Espacio debajo del título */
+    opacity: 0; /* Oculto inicialmente, se mostrará con JS al mismo tiempo que los fuegos */
+    transition: opacity 1s ease-in-out; /* Transición suave */
+  }
+  #special-message {
+    color: white;
+    font-size: 24px; /* Tamaño de letra para el mensaje */
+    margin-top: 10px;
+    line-height: 1.5; /* Espaciado entre líneas para mejor lectura */
+    opacity: 0; /* Oculto inicialmente, se mostrará con JS */
+    /* --- CAMBIO CLAVE AQUÍ: Retraso a 0s para que sea instantáneo --- */
+    transition: opacity 1s ease-in-out 0s; /* Transición instantánea (0s de retraso) */
+  }
+
+  /* --- Estilos para el pastel dibujado con CSS --- */
+  #cake-container {
+    margin-top: 30px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 150px; /* Ancho total del pastel */
+    opacity: 0; /* Oculto inicialmente, se mostrará con JS */
+    transition: opacity 1s ease-in-out 2s; /* Transición suave con retraso */
+    position: relative; /* Importante para posicionar la vela en relación a él */
+  }
+
+  .cake-layer {
+    width: 100%;
+    height: 30px; /* Altura de cada capa */
+    background-color: #d2b48c; /* Color de la masa */
+    border-radius: 50% / 10%; /* Forma ovalada para las capas */
+    position: relative;
+    box-shadow: 0 5px 0 rgba(0,0,0,0.2); /* Sombra para darle profundidad */
+  }
+
+  .cake-layer:nth-child(1) { /* Capa inferior */
+    background-color: #f0e68c; /* Un color un poco diferente para variar */
+    z-index: 3;
+  }
+  .cake-layer:nth-child(2) { /* Capa media */
+    background-color: #d2b48c;
+    margin-top: -15px; /* Para que se superpongan un poco */
+    transform: scale(0.9); /* Capa un poco más pequeña */
+    z-index: 2;
+  }
+  .cake-layer:nth-child(3) { /* Capa superior */
+    background-color: #f0e68c;
+    margin-top: -15px;
+    transform: scale(0.8);
+    z-index: 1;
+  }
+
+  .cake-icing {
+    width: 90%;
+    height: 15px;
+    background-color: #fff; /* Color del glaseado */
+    border-radius: 50% / 10%;
+    position: absolute;
+    top: -5px; /* Para que el glaseado se asome por encima */
+    left: 5%;
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.1);
+  }
+
+  /* Estilos de la vela y llama fuera de las capas para mejor control de z-index */
+  .cake-candle {
+    width: 5px;
+    height: 25px;
+    background-color: #ff4500; /* Color de la vela */
+    position: absolute;
+    top: -30px; /* Ajustada la posición para que quede sobre el pastel */
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 2px;
+    z-index: 99; /* ¡Z-index alto para asegurar visibilidad! */
+  }
+
+  .cake-flame {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 10px solid yellow; /* Color de la llama */
+    position: absolute;
+    top: -40px; /* Ajustada la posición para que quede sobre la vela */
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    box-shadow: 0 0 5px 2px orange; /* Resplandor de la llama */
+    animation: flicker 0.5s infinite alternate; /* Animación de parpadeo */
+    z-index: 100; /* ¡Z-index aún más alto para la llama! */
+  }
+
+  @keyframes flicker {
+    0% { transform: translateX(-50%) scale(1); opacity: 1; }
+    50% { transform: translateX(-50%) scale(0.95); opacity: 0.8; }
+    100% { transform: translateX(-50%) scale(1); opacity: 1; }
+  }
+
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<div id="main-content">
+  <div id="happy-birthday">¡FELIZ CUMPLEAÑOS!</div>
+  <div id="special-message">
+    Espero que tengas un gran día, de alguna forma te doy gracias por llegar a mi vida, <br>
+    te mereces todo lo bonito de este mundooo y recuerda siempre que eres de lo mejor jijiji<br>
+    (posdata: no te vayas con la Abi xd)
+  </div>
+
+  <div id="cake-container">
+    <div class="cake-layer">
+      <div class="cake-icing"></div>
+    </div>
+    <div class="cake-layer">
+      <div class="cake-icing"></div>
+    </div>
+    <div class="cake-layer">
+      <div class="cake-icing"></div>
+    </div>
+    <div class="cake-candle"></div>
+    <div class="cake-flame"></div>
+  </div>
+
+</div>
+
+<script>
+  // Configuración inicial
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const mainContent = document.getElementById('main-content');
+  const happyBirthday = document.getElementById('happy-birthday');
+  const specialMessage = document.getElementById('special-message');
+  const cakeContainer = document.getElementById('cake-container');
+
+  // Ajustar tamaño del canvas
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  // Variables para la animación
+  let particles = [];
+  let fireworks = [];
+  let animationPhase = 0;
+  let lastTime = 0;
+
+  // Colores para las partículas y fuegos artificiales
+  const colors = [
+    '#ff0000', '#00ff00', '#0000ff', '#ffff00',
+    '#ff00ff', '#00ffff', '#ff7700', '#ff0088'
+  ];
+
+  // Clase para partículas de lluvia/chispas
+  class Particle {
+    constructor() {
+      this.x = Math.random() * canvas.width;
+      this.y = Math.random() * canvas.height * -1;
+      this.size = Math.random() * 3 + 1;
+      this.speed = Math.random() * 3 + 1;
+      this.color = `rgba(255, 255, 255, ${Math.random() * 0.5 + 0.3})`;
+    }
+
+    update() {
+      this.y += this.speed;
+      if (this.y > canvas.height) {
+        this.y = Math.random() * canvas.height * -1;
+        this.x = Math.random() * canvas.width;
+      }
+    }
+
+    draw() {
+      ctx.fillStyle = this.color;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // Clase para fuegos artificiales
+  class Firework {
+    constructor(targetX, targetY) {
+      this.x = Math.random() * canvas.width;
+      this.y = canvas.height;
+      this.targetX = targetX;
+      this.targetY = targetY;
+      this.speed = Math.random() * 2 + 1;
+      this.color = colors[Math.floor(Math.random() * colors.length)];
+      this.size = 2;
+      this.arrived = false;
+      this.particles = [];
+    }
+
+    update() {
+      if (!this.arrived) {
+        const dx = this.targetX - this.x;
+        const dy = this.targetY - this.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < 5) {
+          this.arrived = true;
+          this.explode();
+        } else {
+          this.x += (dx / distance) * this.speed;
+          this.y += (dy / distance) * this.speed;
+        }
+      } else {
+        for (let i = 0; i < this.particles.length; i++) {
+          this.particles[i].update();
+          if (this.particles[i].alpha <= 0) {
+            this.particles.splice(i, 1);
+            i--;
+          }
+        }
+      }
+    }
+
+    explode() {
+      for (let i = 0; i < 50; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 3 + 1;
+        this.particles.push({
+          x: this.x,
+          y: this.y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          size: Math.random() * 3 + 1,
+          color: this.color,
+          alpha: 1,
+          decay: Math.random() * 0.05 + 0.01,
+          update: function() {
+            this.x += this.vx;
+            this.y += this.vy;
+            this.vy += 0.05;
+            this.alpha -= this.decay;
+          },
+          draw: function() {
+            ctx.globalAlpha = this.alpha;
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+          }
+        });
+      }
+    }
+
+    draw() {
+      if (!this.arrived) {
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        for (const particle of this.particles) {
+          particle.draw();
+        }
+      }
+    }
+  }
+
+  // Inicializar partículas de lluvia
+  function initRain() {
+    particles = [];
+    for (let i = 0; i < 200; i++) {
+      particles.push(new Particle());
+    }
+  }
+
+  // Crear fuegos artificiales para formar letras
+  function createLetterFireworks() {
+    const text = "¡FELIZ CUMPLEAÑOS!";
+    const fontSize = 48;
+
+    ctx.font = `${fontSize}px Arial`;
+    const textWidth = ctx.measureText(text).width;
+    const startX = (canvas.width - textWidth) / 2;
+    const startY = canvas.height * 0.15;
+
+    for (let i = 0; i < text.length; i++) {
+      const letter = text[i];
+      const letterWidth = ctx.measureText(letter).width;
+      const x = startX + ctx.measureText(text.substring(0, i)).width + letterWidth / 2;
+
+      for (let j = 0; j < 5; j++) {
+        fireworks.push(new Firework(
+          x + (Math.random() - 0.5) * 20,
+          startY + (Math.random() - 0.5) * 20
+        ));
+      }
+    }
+  }
+
+  // Función para mostrar el contenido de texto y el pastel
+  function showContent() {
+    specialMessage.style.opacity = 1;
+    cakeContainer.style.opacity = 1;
+  }
+
+  // Función de animación principal
+  function animate(timestamp) {
+    const deltaTime = timestamp - lastTime;
+    lastTime = timestamp;
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    switch (animationPhase) {
+      case 0:
+        for (const particle of particles) {
+          particle.update();
+          particle.draw();
+        }
+
+        if (timestamp > 2000) {
+          animationPhase = 1;
+          createLetterFireworks();
+          happyBirthday.style.opacity = 1;
+        }
+        break;
+      case 1:
+        for (const particle of particles) {
+          particle.update();
+          particle.draw();
+        }
+
+        for (let i = 0; i < fireworks.length; i++) {
+          fireworks[i].update();
+          fireworks[i].draw();
+
+          if (fireworks[i].arrived && fireworks[i].particles.length === 0) {
+            fireworks.splice(i, 1);
+            i--;
+          }
+        }
+
+        if (fireworks.length === 0 && animationPhase === 1) {
+          showContent();
+          animationPhase = 2;
+        }
+        break;
+      case 2:
+        for (const particle of particles) {
+          particle.update();
+          particle.draw();
+        }
+        break;
+    }
+
+    requestAnimationFrame(animate);
+  }
+
+  // Iniciar animación
+  window.addEventListener('load', () => {
+    initRain();
+    requestAnimationFrame(animate);
+  });
+
+  // Redimensionar canvas al cambiar tamaño de ventana
+  window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    particles = [];
+    initRain();
+    if (animationPhase === 1) {
+      fireworks = [];
+      createLetterFireworks();
+    }
+  });
+</script>
+</body>
+</html>
